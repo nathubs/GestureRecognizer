@@ -5,7 +5,7 @@ import os
 import shutil
 
 
-path = "./data/gestrue/left"
+path = "./data/num/8"
 
 
 def get_timestamp():
@@ -19,7 +19,7 @@ if not os.path.exists(path):
 
 seq = 0
 timestamp = get_timestamp()
-cap = cv2.VideoCapture(4)
+cap = cv2.VideoCapture(0)
 while True:
     success, img = cap.read()
     if not success:

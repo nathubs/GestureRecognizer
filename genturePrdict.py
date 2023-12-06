@@ -1,3 +1,4 @@
+import os
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
@@ -13,7 +14,13 @@ mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 
-
+same_img_path = "./test"
+if not os.path.exists(same_img_path):
+    os.mkdir(same_img_path)
+def get_timestamp():
+    return time.strftime("%Y%m%d%H%M%S")
+timestamp = get_timestamp()
+seq = 0
     
 model_path = "./exported_model/gesture_recognizer.task"
 
@@ -78,6 +85,8 @@ with GestureRecognizer.create_from_options(options) as recognizer:
     cTime = 0  # 一张图处理完的时间
     while cap.isOpened():  # as long as the webcam is open this will happen
         ret, frame = cap.read()  # Saves the image from your webcam as a frame
+        # 水平镜像
+        frame = cv2.flip(frame, 1)
         # OPENCV reads in as BGR.  This line recolors image to RGB
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # image.flags.writeable = False  # Saves memory by making image not writeable
@@ -114,11 +123,13 @@ with GestureRecognizer.create_from_options(options) as recognizer:
                 # print(gesture_recognition_result.gestures[i][0].category_name)
                 if gesture_recognition_result.gestures[i][0].category_name == "right" or gesture_recognition_result.gestures[i][0].category_name == "left":                                
                     if hand_landmarks[0].x > hand_landmarks[8].x:
-                        gesture_recognition_result.gestures[i][0].category_name ="right"
+                        gesture_recognition_result.gestures[i][0].category_name ="left"
                     else:
-                        gesture_recognition_result.gestures[i][0].category_name = "left"
+                        gesture_recognition_result.gestures[i][0].category_name = "right"
                 if  gesture_recognition_result.gestures[i][0].category_name is not None:       
-                    cv2.putText(image, gesture_recognition_result.gestures[i][0].category_name, (int(hand_landmarks[0].x* width)-30 , int(hand_landmarks[0].y*height)+20), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+                # if  gesture_recognition_result.gestures[i][0].category_name is not None and gesture_recognition_result.gestures[i][0].score >= 0.800: 
+                    # print(gesture_recognition_result)
+                    cv2.putText(image, f'{gesture_recognition_result.gestures[i][0].category_name} {round(gesture_recognition_result.gestures[i][0].score,3)}', (int(hand_landmarks[0].x* width)-30 , int(hand_landmarks[0].y*height)+20), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
         
               
         # 记录执行时间
@@ -133,10 +144,16 @@ with GestureRecognizer.create_from_options(options) as recognizer:
         # cv2.putText(image, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 2)     
         cv2.imshow("Vedio", image)
 
-        if cv2.waitKey(10) & 0xFF == ord(
+        key = cv2.waitKey(10)
+        if key & 0xFF == ord(
             "q"
         ):  # This puts you out of the loop above if you hit q
             break
+        
+        if key & 0xFF == ord("s"):
+            seq = seq + 1
+            cv2.imwrite(f"{same_img_path}/{timestamp}_{seq}.jpg", frame)
+            print("save", f"{same_img_path}/{timestamp}_{seq}.jpg")
 
     cap.release()  # Releases the webcam from your memory
     cv2.destroyAllWindows()  # Closes the window for the webcam
