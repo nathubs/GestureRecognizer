@@ -68,7 +68,7 @@ options = GestureRecognizerOptions(
     base_options=BaseOptions(model_asset_path=model_path),
     # running_mode=VisionRunningMode.LIVE_STREAM,
     running_mode=VisionRunningMode.VIDEO,
-    num_hands=2,
+    num_hands=10,
     # result_callback=print_result,
 )
 with GestureRecognizer.create_from_options(options) as recognizer:
